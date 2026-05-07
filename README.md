@@ -15,16 +15,15 @@ One input box. Paste anything — email, meeting notes, project updates, or rand
 - Anthropic API key
 
 ### Setup
-
 ```bash
-# Install dependencies
+# Clone and install
 npm install
 
 # Configure environment
 cp .env.example .env
 # Edit .env and add your ANTHROPIC_API_KEY
 
-# Start development (backend + frontend concurrently)
+# Start development (backend + frontend)
 npm run dev
 ```
 
@@ -34,7 +33,6 @@ npm run dev
 ## Architecture
 
 ### Multi-Agent Hub and Spoke
-
 ```
 Input → OrchestratorAgent → EmailAgent
                           → MeetingAgent
@@ -63,7 +61,7 @@ The Orchestrator analyses the input type and routes to one or more specialist ag
 - **UI**: shadcn/ui + Tailwind CSS + lucide-react
 - **Routing**: wouter
 - **Storage**: In-memory (no database required)
-- **File upload**: multer (memory storage only)
+- **File upload**: multer (memory storage)
 
 ## Slash Commands
 
@@ -82,9 +80,9 @@ The Orchestrator analyses the input type and routes to one or more specialist ag
 
 ### Core
 ```
-POST   /api/process          # Main orchestrator endpoint
-GET    /api/history          # Last 10 interactions
-DELETE /api/history          # Clear session
+POST /api/process          # Main orchestrator endpoint
+GET  /api/history          # Last 10 interactions
+DELETE /api/history        # Clear session
 ```
 
 ### Agent-Specific
@@ -120,7 +118,7 @@ GET /api/mcp/templates/:type    # types: status-update, escalation, risk-alert, 
 GET /api/mcp/search?q=query
 ```
 
-### Batch CI/CD
+### Batch
 ```
 POST /api/batch/weekly-report
 GET  /api/batch/:jobId
@@ -139,33 +137,22 @@ GET  /api/batch/:jobId
 
 ## Seed Data
 
-The app starts with dummy data pre-loaded (all editable and deletable via the UI):
+The app starts with dummy stakeholders and projects pre-loaded:
 
-**Stakeholders**: Sarah Mitchell (Client Co), James Patel (Client Co), Priya Sharma (Client Co), Robert Chen (Client Co), Alex Thompson (Delivery Co), Maya Singh (Delivery Co)
+**Stakeholders**: Sarah Mitchell, James Patel, Priya Sharma, Robert Chen, Alex Thompson, Maya Singh
 
 **Projects**: Project Alpha (At Risk), Project Beta (On Track), Project Gamma (On Track), Project Delta (At Risk), Project Epsilon (On Track)
 
+All seed data is editable and deletable via the UI.
+
 ## Reliability Features
 
-- **Retry logic**: All Claude calls retry 3x with exponential backoff (1s → 2s → 4s)
-- **JSON validation retry**: 3x on malformed JSON output
-- **Circuit breaker**: After 5 consecutive failures, simplified degraded mode activates
-- **Graceful degradation**: Every agent has a valid fallback response
-- **Input guardrails**: Blocks prompt injection and credential patterns
+- **Retry logic**: All Claude calls retry 3x with exponential backoff (1s, 2s, 4s)
+- **JSON validation**: Retry 3x on malformed JSON output
+- **Circuit breaker**: After 5 consecutive failures, simplified mode activates
+- **Graceful degradation**: Every agent has a fallback response
+- **Input guardrails**: Blocks prompt injection, credential patterns
 - **Output guardrails**: Validates JSON structure before returning
-
-## CLAUDE.md Hierarchy
-
-```
-CLAUDE.md                    # Project-level rules
-agents/CLAUDE.md             # Agent output contracts
-tools/CLAUDE.md              # Tool schema rules
-mcp/CLAUDE.md                # MCP server rules
-skills/CLAUDE.md             # Skill frontmatter rules
-server/agents/CLAUDE.md      # Runtime agent enforcement
-server/tools/CLAUDE.md       # Runtime tool enforcement
-server/mcp/CLAUDE.md         # Runtime MCP enforcement
-```
 
 ## Environment Variables
 
@@ -173,4 +160,17 @@ server/mcp/CLAUDE.md         # Runtime MCP enforcement
 ANTHROPIC_API_KEY=your_api_key_here
 PORT=5000
 NODE_ENV=development
+```
+
+## CLAUDE.md Hierarchy
+
+```
+CLAUDE.md                          # Project-level rules
+agents/CLAUDE.md                   # Agent contracts
+tools/CLAUDE.md                    # Tool schemas
+mcp/CLAUDE.md                      # MCP server rules
+skills/CLAUDE.md                   # Skill frontmatter rules
+server/agents/CLAUDE.md            # Runtime agent rules
+server/tools/CLAUDE.md             # Runtime tool rules
+server/mcp/CLAUDE.md               # Runtime MCP rules
 ```
