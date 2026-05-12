@@ -1,5 +1,4 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { store } from "../storage.js";
 
 const REPORT_SYSTEM = `You are generating a leadership summary for a Senior PM to share with C-suite leadership. Write in business language — no technical jargon. Use RAG indicators.
 
@@ -17,19 +16,7 @@ Return valid JSON only:
 
 export async function runReportAgent(input: string): Promise<Record<string, unknown>> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-  if (store.isCircuitOpen()) {
-    return {
-      weekOf: new Date().toISOString().split("T")[0],
-      executiveSummary: "Report generation unavailable. Please review manually.",
-      portfolioHealth: "At Risk",
-      projects: [],
-      keyAchievements: [],
-      risksForLeadership: ["AI system temporarily unavailable"],
-      decisionsNeeded: ["Manual report compilation required"],
-      nextWeekOutlook: "N/A",
-    };
-  }
+  let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -73,20 +60,11 @@ export async function runReportAgent(input: string): Promise<Record<string, unkn
         if (jsonMatch) return JSON.parse(jsonMatch[0]);
       }
 
-      throw new Error("No valid output");
+      throw new Error("No valid output from ReportAgent");
     } catch (err) {
-      // continue retrying
+      lastError = err as Error;
     }
   }
 
-  return {
-    weekOf: new Date().toISOString().split("T")[0],
-    executiveSummary: "Unable to generate report. Please review input manually.",
-    portfolioHealth: "At Risk",
-    projects: [],
-    keyAchievements: [],
-    risksForLeadership: ["Report agent unavailable"],
-    decisionsNeeded: [],
-    nextWeekOutlook: "N/A",
-  };
+  throw lastError || new Error("ReportAgent failed after 3 attempts");
 }

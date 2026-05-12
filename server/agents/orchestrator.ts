@@ -36,17 +36,6 @@ export interface OrchestratorResult {
 
 export async function runOrchestrator(input: string): Promise<OrchestratorResult> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-  if (store.isCircuitOpen()) {
-    return {
-      inputType: ["UNKNOWN"],
-      agentsToCall: ["EmailAgent"],
-      confidence: 0.5,
-      context: "Circuit breaker open — simplified routing",
-      urgency: "low",
-    };
-  }
-
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -63,14 +52,11 @@ export async function runOrchestrator(input: string): Promise<OrchestratorResult
 
       const text = response.content[0].type === "text" ? response.content[0].text : "";
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("No JSON in response");
+      if (!jsonMatch) throw new Error("No JSON in orchestrator response");
 
-      const result = JSON.parse(jsonMatch[0]) as OrchestratorResult;
-      store.recordSuccess();
-      return result;
+      return JSON.parse(jsonMatch[0]) as OrchestratorResult;
     } catch (err) {
       lastError = err as Error;
-      store.recordFailure();
     }
   }
 

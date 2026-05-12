@@ -46,7 +46,6 @@ class InMemoryStore {
   private stakeholders: Map<string, StakeholderProfile> = new Map();
   private projects: Map<string, ProjectProfile> = new Map();
   private session: Session;
-  private failureCount = 0;
 
   constructor() {
     this.session = {
@@ -212,10 +211,6 @@ class InMemoryStore {
     this.session.interactions = [];
   }
 
-  // Circuit breaker
-  recordFailure() { this.failureCount++; }
-  recordSuccess() { this.failureCount = 0; }
-  isCircuitOpen(): boolean { return this.failureCount >= 5; }
   getSession(): Session { return this.session; }
 }
 

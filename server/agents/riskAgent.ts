@@ -1,5 +1,4 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { store } from "../storage.js";
 
 const RISK_SYSTEM = `You are a risk assessment specialist for BFSI AI delivery programmes. Identify, categorise and prioritise all risks in the input. Be conservative — when in doubt, flag it.
 
@@ -16,15 +15,7 @@ severity must be one of: 🔴 High, 🟡 Medium, 🟢 Low`;
 
 export async function runRiskAgent(input: string): Promise<Record<string, unknown>> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-  if (store.isCircuitOpen()) {
-    return {
-      overallRiskLevel: "High",
-      risks: [{ description: "AI system unavailable — manual risk review required", category: "Technical", severity: "🟡 Medium", likelihood: "High", impact: "Delayed risk assessment", mitigation: "Perform manual review", owner: "PM", escalationNeeded: false }],
-      escalationEmail: { subject: "Risk Review Required", body: "AI risk assessment is temporarily unavailable. Please perform a manual review.", urgency: "medium" },
-      immediateActions: ["Conduct manual risk review"],
-    };
-  }
+  let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -64,16 +55,11 @@ export async function runRiskAgent(input: string): Promise<Record<string, unknow
         if (jsonMatch) return JSON.parse(jsonMatch[0]);
       }
 
-      throw new Error("No valid output");
+      throw new Error("No valid output from RiskAgent");
     } catch (err) {
-      // continue
+      lastError = err as Error;
     }
   }
 
-  return {
-    overallRiskLevel: "Medium",
-    risks: [{ description: "Risk agent unavailable — manual review needed", category: "Technical", severity: "🟡 Medium", likelihood: "High", impact: "Unknown", mitigation: "Manual review", owner: "PM", escalationNeeded: false }],
-    escalationEmail: { subject: "Manual Risk Review Required", body: "Please conduct a manual risk review.", urgency: "medium" },
-    immediateActions: ["Manual risk review required"],
-  };
+  throw lastError || new Error("RiskAgent failed after 3 attempts");
 }

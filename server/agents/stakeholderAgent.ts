@@ -26,7 +26,6 @@ export async function runStakeholderAgent(input: string, name?: string): Promise
   if (name) {
     knownProfile = store.findStakeholderByName(name);
   } else {
-    // Try to find name in input
     for (const s of stakeholders) {
       if (input.toLowerCase().includes(s.name.toLowerCase())) {
         knownProfile = s;
@@ -35,24 +34,11 @@ export async function runStakeholderAgent(input: string, name?: string): Promise
     }
   }
 
-  if (store.isCircuitOpen()) {
-    return knownProfile ? {
-      name: knownProfile.name,
-      organisation: knownProfile.organisation,
-      role: knownProfile.role,
-      projects: knownProfile.projects,
-      currentConcerns: knownProfile.currentConcerns,
-      communicationStyle: knownProfile.communicationStyle,
-      lastInteraction: "Unknown",
-      talkingPoints: [],
-      thingsToAvoid: [],
-      openActions: knownProfile.openActions,
-    } : { error: "Stakeholder not found and AI unavailable" };
-  }
-
   const kbContext = knownProfile
     ? `Stakeholder Profile:\n${JSON.stringify(knownProfile, null, 2)}\n\nRelated Projects:\n${JSON.stringify(projects.filter(p => knownProfile!.projects.includes(p.name)), null, 2)}`
     : `Available Stakeholders:\n${stakeholders.map(s => `${s.name} - ${s.role} at ${s.organisation}`).join("\n")}\n\nAvailable Projects:\n${projects.map(p => `${p.name} (${p.status})`).join("\n")}`;
+
+  let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -63,10 +49,7 @@ export async function runStakeholderAgent(input: string, name?: string): Promise
         model: "claude-sonnet-4-5",
         max_tokens: 2048,
         system: STAKEHOLDER_SYSTEM,
-        messages: [{
-          role: "user",
-          content: `Knowledge Base:\n${kbContext}\n\nRequest: ${input}`,
-        }],
+        messages: [{ role: "user", content: `Knowledge Base:\n${kbContext}\n\nRequest: ${input}` }],
         tool_choice: { type: "any" } as Anthropic.ToolChoiceAny,
         tools: [
           {
@@ -101,22 +84,11 @@ export async function runStakeholderAgent(input: string, name?: string): Promise
         if (jsonMatch) return JSON.parse(jsonMatch[0]);
       }
 
-      throw new Error("No valid output");
+      throw new Error("No valid output from StakeholderAgent");
     } catch (err) {
-      // continue
+      lastError = err as Error;
     }
   }
 
-  return {
-    name: name || "Unknown",
-    organisation: "Unknown",
-    role: "Unknown",
-    projects: [],
-    currentConcerns: [],
-    communicationStyle: "Unknown",
-    lastInteraction: "Unknown",
-    talkingPoints: [],
-    thingsToAvoid: [],
-    openActions: [],
-  };
+  throw lastError || new Error("StakeholderAgent failed after 3 attempts");
 }

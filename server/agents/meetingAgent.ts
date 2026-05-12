@@ -1,5 +1,4 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { store } from "../storage.js";
 
 const MEETING_SYSTEM = `You are extracting structured information from meeting notes for a Senior PM in BFSI. Be precise — only extract what is explicitly stated, never infer.
 
@@ -17,20 +16,6 @@ Return valid JSON only:
 
 export async function runMeetingAgent(input: string): Promise<Record<string, unknown>> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-  if (store.isCircuitOpen()) {
-    return {
-      meetingTitle: "Meeting Notes",
-      date: new Date().toISOString().split("T")[0],
-      attendees: [],
-      decisions: [],
-      actionItems: [],
-      risks: [],
-      followUpEmail: { subject: "Meeting Follow-up", body: "Please find attached the meeting notes for your reference.", recipients: [] },
-      openItems: ["Manual review required — AI system temporarily unavailable"],
-    };
-  }
-
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -75,20 +60,11 @@ export async function runMeetingAgent(input: string): Promise<Record<string, unk
         if (jsonMatch) return JSON.parse(jsonMatch[0]);
       }
 
-      throw new Error("No valid output");
+      throw new Error("No valid output from MeetingAgent");
     } catch (err) {
       lastError = err as Error;
     }
   }
 
-  return {
-    meetingTitle: "Meeting Notes",
-    date: new Date().toISOString().split("T")[0],
-    attendees: [],
-    decisions: [],
-    actionItems: [],
-    risks: [],
-    followUpEmail: { subject: "Meeting Follow-up", body: "Please find the meeting notes for your review.", recipients: [] },
-    openItems: ["Agent unavailable — manual review required"],
-  };
+  throw lastError || new Error("MeetingAgent failed after 3 attempts");
 }

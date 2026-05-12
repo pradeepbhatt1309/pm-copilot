@@ -1,5 +1,4 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { store } from "../storage.js";
 
 const EMAIL_SYSTEM = `You are drafting professional emails for a Senior Project Manager in BFSI Wealth & Asset Management. Write in a professional, concise, senior-appropriate tone.
 
@@ -20,19 +19,6 @@ Return valid JSON only:
 
 export async function runEmailAgent(input: string, context?: string): Promise<Record<string, unknown>> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-  if (store.isCircuitOpen()) {
-    return {
-      priority: "medium",
-      priorityReason: "System in degraded mode",
-      suggestedResponseTime: "24 hours",
-      draftReply: { subject: "Re: Your email", body: "Thank you for your email. I will review and respond shortly.", tone: "professional" },
-      actionItems: [],
-      risks: [],
-      keyPoints: ["Manual review required — AI system temporarily unavailable"],
-    };
-  }
-
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -76,9 +62,7 @@ export async function runEmailAgent(input: string, context?: string): Promise<Re
       });
 
       const toolUse = response.content.find(c => c.type === "tool_use");
-      if (toolUse && toolUse.type === "tool_use") {
-        return toolUse.input as Record<string, unknown>;
-      }
+      if (toolUse && toolUse.type === "tool_use") return toolUse.input as Record<string, unknown>;
 
       const textContent = response.content.find(c => c.type === "text");
       if (textContent && textContent.type === "text") {
@@ -92,13 +76,5 @@ export async function runEmailAgent(input: string, context?: string): Promise<Re
     }
   }
 
-  return {
-    priority: "medium",
-    priorityReason: "Agent unavailable",
-    suggestedResponseTime: "As soon as possible",
-    draftReply: { subject: "Follow up", body: "Thank you for reaching out. I will get back to you shortly.", tone: "professional" },
-    actionItems: [],
-    risks: [{ description: "AI agent temporarily unavailable", severity: "low", suggestedAction: "Manual review required" }],
-    keyPoints: ["Manual review required"],
-  };
+  throw lastError || new Error("EmailAgent failed after 3 attempts");
 }
