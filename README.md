@@ -1,176 +1,198 @@
-# PM Copilot
+# 🧠 PM Copilot
 
-AI-powered personal productivity tool for a Senior Project Manager in BFSI Wealth & Asset Management.
+An AI-powered personal productivity tool for Senior Project Managers in BFSI Wealth & Asset Management. Built on a multi-agent architecture powered by Claude — one input box, five specialist agents, zero manual routing.
 
-## What It Does
+---
 
-One input box. Paste anything — email, meeting notes, project updates, or random thoughts. The Orchestrator Agent detects what it is, routes to the right specialist agents, and returns clean professional outputs instantly.
+## 🚀 What It Does
 
-**No manual mode selection. No dropdowns. Just paste and get.**
+Paste anything — an email, meeting notes, a project update, a risk concern. PM Copilot's Orchestrator Agent detects what it is, routes it to the right specialist agents, and returns clean, professional, structured outputs instantly.
 
-## Quick Start
+No dropdowns. No mode selection. Just paste and get.
+
+---
+
+## 🧩 Multi-Agent Architecture
+
+PM Copilot uses a **hub-and-spoke** orchestration model:
+
+```
+User Input
+    ↓
+OrchestratorAgent (detects type, routes)
+    ↓
+┌─────────────────────────────────────┐
+│  EmailAgent     → triage + replies  │
+│  MeetingAgent   → decisions + actions│
+│  ReportAgent    → leadership briefs │
+│  RiskAgent      → risk assessment   │
+│  StakeholderAgent → context briefs  │
+└─────────────────────────────────────┘
+    ↓
+Unified structured output
+```
+
+The Orchestrator never does analysis itself — coordination only. Multiple agents can be called in parallel for mixed-content inputs.
+
+---
+
+## 🧠 Key Features
+
+- **Auto-detection** — detects email, meeting notes, project update, or risk content as you type
+- **5 specialist agents** — each returns structured JSON output
+- **Slash commands** — `/triage` `/meeting` `/report` `/risk` `/stakeholder` `/draft` `/clear` `/history`
+- **MCP knowledge base** — stakeholder profiles, project context, email templates
+- **Full CRUD** — add, edit, delete stakeholders and projects via UI
+- **Session history** — last 10 interactions stored in session
+- **File upload** — attach PDF, DOCX, TXT, XLSX for processing
+- **Graceful degradation** — every agent has a fallback if AI call fails
+- **Retry logic** — exponential backoff (1s → 2s → 4s), circuit breaker after 5 failures
+- **Input/output guardrails** — blocks prompt injection, validates JSON structure
+- **Dark mode** — full theme support
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React, TypeScript, Vite |
+| UI Components | shadcn/ui, Tailwind CSS |
+| Routing | wouter |
+| Data Fetching | TanStack Query v5 |
+| Backend | Node.js, Express |
+| AI | Anthropic Claude Sonnet (claude-sonnet-4-5) |
+| MCP Server | stdio (local) / SSE (remote) |
+| File Handling | multer (memory storage only) |
+| Storage | In-memory (no database) |
+
+---
+
+## 📐 Agent System Prompts
+
+Each agent receives a precise system prompt and returns **valid JSON only**:
+
+| Agent | Output |
+|---|---|
+| EmailAgent | Priority, draft reply, action items, risks |
+| MeetingAgent | Decisions, actions, follow-up email, open items |
+| ReportAgent | Executive summary, RAG per project, risks, decisions needed |
+| RiskAgent | Risks ranked by severity, mitigations, escalation email |
+| StakeholderAgent | Role, projects, concerns, communication style, talking points |
+
+All agents use `tool_choice: "any"` and include 3x JSON validation-retry on malformed output.
+
+---
+
+## 🗂️ CLAUDE.md Hierarchy
+
+```
+~/.claude/CLAUDE.md          → Global: PM persona, never fabricate facts
+CLAUDE.md                    → Project: JSON-only, graceful degradation, BFSI compliance
+agents/CLAUDE.md             → Strict JSON, no conversational text
+tools/CLAUDE.md              → Structured errors required
+mcp/CLAUDE.md                → Knowledge base formatting rules
+skills/CLAUDE.md             → Trigger conditions must be precise
+```
+
+---
+
+## 🔌 MCP Knowledge Base
+
+**Resources:**
+- `stakeholders://people/{id}` — stakeholder profiles
+- `projects://active/{id}` — project context
+- `templates://email/*` — status update, escalation, risk alert
+- `templates://report/weekly` — weekly report template
+
+**Tools:**
+- `search_kb` — RAG search over knowledge base
+- `get_stakeholder` — fetch stakeholder profile
+- `get_template` — fetch email/report template
+- `log_interaction` — record interaction for future context
+
+---
+
+## ⚙️ Getting Started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js v18+
 - Anthropic API key
 
-### Setup
+### Installation
+
 ```bash
-# Clone and install
+# Clone the repo
+git clone https://github.com/pradeepbhatt1309/pm-copilot-Description-AI-powered-personal-PM-productivity-tool.git
+cd pm-copilot
+
+# Install dependencies
 npm install
 
-# Configure environment
+# Set up environment variables
 cp .env.example .env
-# Edit .env and add your ANTHROPIC_API_KEY
+# Add your ANTHROPIC_API_KEY to .env
 
-# Start development (backend + frontend)
+# Run the app
 npm run dev
 ```
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:5000
+| Service | Port |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend | http://localhost:5000 |
+| MCP Server | http://localhost:3001 |
 
-## Architecture
+---
 
-### Multi-Agent Hub and Spoke
-```
-Input → OrchestratorAgent → EmailAgent
-                          → MeetingAgent
-                          → ReportAgent
-                          → RiskAgent
-                          → StakeholderAgent
-```
+## 🔑 Environment Variables
 
-The Orchestrator analyses the input type and routes to one or more specialist agents in parallel. Results are assembled and returned in a unified response.
-
-### Agent Capabilities
-
-| Agent | Input | Output |
-|-------|-------|--------|
-| EmailAgent | Email content | Priority, draft reply, action items, risks |
-| MeetingAgent | Meeting notes | Decisions, actions, follow-up email |
-| ReportAgent | Project updates | Executive summary, RAG status, decisions needed |
-| RiskAgent | Any content | Risk assessment, escalation email |
-| StakeholderAgent | Stakeholder query | Brief with talking points |
-
-## Tech Stack
-
-- **Frontend**: React + TypeScript + Vite + TanStack Query v5
-- **Backend**: Express + Node.js (TypeScript)
-- **AI**: Claude claude-sonnet-4-5 via Anthropic SDK
-- **UI**: shadcn/ui + Tailwind CSS + lucide-react
-- **Routing**: wouter
-- **Storage**: In-memory (no database required)
-- **File upload**: multer (memory storage)
-
-## Slash Commands
-
-| Command | Description |
-|---------|-------------|
-| `/triage` | Force EmailAgent on current input |
-| `/meeting` | Force MeetingAgent on current input |
-| `/report` | Force ReportAgent on current input |
-| `/risk` | Force RiskAgent on current input |
-| `/stakeholder [name]` | Lookup stakeholder in MCP knowledge base |
-| `/draft [context]` | Draft email with given context |
-| `/clear` | Clear current session |
-| `/history` | Show last 5 inputs and outputs |
-
-## API Reference
-
-### Core
-```
-POST /api/process          # Main orchestrator endpoint
-GET  /api/history          # Last 10 interactions
-DELETE /api/history        # Clear session
+```env
+ANTHROPIC_API_KEY=your_key_here
 ```
 
-### Agent-Specific
-```
-POST /api/agents/email
-POST /api/agents/meeting
-POST /api/agents/report
-POST /api/agents/risk
-POST /api/agents/stakeholder
-```
+---
 
-### Stakeholders (CRUD)
-```
-GET    /api/stakeholders
-GET    /api/stakeholders/:id
-POST   /api/stakeholders
-PUT    /api/stakeholders/:id
-DELETE /api/stakeholders/:id
-```
-
-### Projects (CRUD)
-```
-GET    /api/projects
-POST   /api/projects
-PUT    /api/projects/:id
-DELETE /api/projects/:id
-```
-
-### MCP
-```
-GET /api/mcp/stakeholders
-GET /api/mcp/templates/:type    # types: status-update, escalation, risk-alert, meeting-summary
-GET /api/mcp/search?q=query
-```
-
-### Batch
-```
-POST /api/batch/weekly-report
-GET  /api/batch/:jobId
-```
-
-## Pages
+## 📱 Pages
 
 | Route | Description |
-|-------|-------------|
+|---|---|
 | `/` | Main copilot interface — paste anything |
 | `/history` | Past interactions |
 | `/stakeholders` | Stakeholder knowledge base (full CRUD) |
 | `/projects` | Project register (full CRUD) |
 | `/templates` | Email and report templates |
-| `/settings` | Configuration overview |
+| `/settings` | Preferences |
 
-## Seed Data
+---
 
-The app starts with dummy stakeholders and projects pre-loaded:
+## 🔒 Reliability & Safety
 
-**Stakeholders**: Sarah Mitchell, James Patel, Priya Sharma, Robert Chen, Alex Thompson, Maya Singh
+- **Retry:** All Claude calls retry 3x with exponential backoff (1s, 2s, 4s)
+- **Circuit breaker:** After 5 failures → simplified mode
+- **Guardrails:** Blocks prompt injection, API keys in input, off-topic requests
+- **Graceful degradation:** Every agent has a defined fallback — system never hard-fails
+- **BFSI compliance:** Never suggests sharing sensitive data externally
+- **Memory:** Files processed in memory only — never written to disk
+- **Session:** Auto-purged after 8 hours inactivity
 
-**Projects**: Project Alpha (At Risk), Project Beta (On Track), Project Gamma (On Track), Project Delta (At Risk), Project Epsilon (On Track)
+---
 
-All seed data is editable and deletable via the UI.
+## 💡 Why I Built This
 
-## Reliability Features
+Senior PMs in financial services spend a disproportionate amount of time on mechanical work — drafting replies, summarising meetings, formatting reports, assessing risks. This is exactly the work AI should be doing.
 
-- **Retry logic**: All Claude calls retry 3x with exponential backoff (1s, 2s, 4s)
-- **JSON validation**: Retry 3x on malformed JSON output
-- **Circuit breaker**: After 5 consecutive failures, simplified mode activates
-- **Graceful degradation**: Every agent has a fallback response
-- **Input guardrails**: Blocks prompt injection, credential patterns
-- **Output guardrails**: Validates JSON structure before returning
+PM Copilot explores what happens when you give a PM a true AI chief of staff — one that understands BFSI context, knows your stakeholders, and returns outputs you can use immediately. Built as part of my AI upskilling while managing enterprise AI delivery programmes.
 
-## Environment Variables
+---
 
-```env
-ANTHROPIC_API_KEY=your_api_key_here
-PORT=5000
-NODE_ENV=development
-```
+## 📌 Status
 
-## CLAUDE.md Hierarchy
+✅ Fully functional — all 5 agents live, MCP knowledge base working, full CRUD operational
 
-```
-CLAUDE.md                          # Project-level rules
-agents/CLAUDE.md                   # Agent contracts
-tools/CLAUDE.md                    # Tool schemas
-mcp/CLAUDE.md                      # MCP server rules
-skills/CLAUDE.md                   # Skill frontmatter rules
-server/agents/CLAUDE.md            # Runtime agent rules
-server/tools/CLAUDE.md             # Runtime tool rules
-server/mcp/CLAUDE.md               # Runtime MCP rules
-```
+## 🧑‍💻 Author
+
+Pradeep Bhatt
+
+Senior Project Manager | AI Delivery | BFSI  
+[LinkedIn](https://www.linkedin.com/in/pradeep-bhatt-3372a954/) · [GitHub](https://github.com/pradeepbhatt1309)
