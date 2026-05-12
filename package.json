@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "tsx watch server/index.ts",
+    "server": "tsx --env-file=.env watch server/index.ts",
     "client": "vite",
     "build": "tsc && vite build",
     "start": "node dist/server/index.js"

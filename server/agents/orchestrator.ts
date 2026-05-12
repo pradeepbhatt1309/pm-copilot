@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { store } from "../storage.js";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const ORCHESTRATOR_SYSTEM = `You are the PM Copilot orchestration coordinator for a Senior PM in BFSI Wealth & Asset Management.
 Analyse the input and determine:
 1. What type of content is this?
@@ -37,6 +35,8 @@ export interface OrchestratorResult {
 }
 
 export async function runOrchestrator(input: string): Promise<OrchestratorResult> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   if (store.isCircuitOpen()) {
     return {
       inputType: ["UNKNOWN"],

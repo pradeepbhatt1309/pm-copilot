@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { store } from "../storage.js";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const STAKEHOLDER_SYSTEM = `You are generating a stakeholder brief for a Senior PM before an interaction. Use only information from the knowledge base provided. Never fabricate details.
 
 Return valid JSON only:
@@ -20,6 +18,7 @@ Return valid JSON only:
 }`;
 
 export async function runStakeholderAgent(input: string, name?: string): Promise<Record<string, unknown>> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const stakeholders = store.getAllStakeholders();
   const projects = store.getAllProjects();
 

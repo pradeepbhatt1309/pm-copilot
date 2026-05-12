@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { store } from "../storage.js";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const EMAIL_SYSTEM = `You are drafting professional emails for a Senior Project Manager in BFSI Wealth & Asset Management. Write in a professional, concise, senior-appropriate tone.
 
 Return valid JSON only:
@@ -21,6 +19,8 @@ Return valid JSON only:
 }`;
 
 export async function runEmailAgent(input: string, context?: string): Promise<Record<string, unknown>> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   if (store.isCircuitOpen()) {
     return {
       priority: "medium",

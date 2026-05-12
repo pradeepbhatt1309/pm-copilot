@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { store } from "../storage.js";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const RISK_SYSTEM = `You are a risk assessment specialist for BFSI AI delivery programmes. Identify, categorise and prioritise all risks in the input. Be conservative — when in doubt, flag it.
 
 Return valid JSON only:
@@ -17,6 +15,8 @@ category must be one of: Timeline, Resource, Technical, Stakeholder, Compliance
 severity must be one of: 🔴 High, 🟡 Medium, 🟢 Low`;
 
 export async function runRiskAgent(input: string): Promise<Record<string, unknown>> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   if (store.isCircuitOpen()) {
     return {
       overallRiskLevel: "High",

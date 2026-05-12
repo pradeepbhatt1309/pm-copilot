@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { store } from "../storage.js";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const REPORT_SYSTEM = `You are generating a leadership summary for a Senior PM to share with C-suite leadership. Write in business language — no technical jargon. Use RAG indicators.
 
 Return valid JSON only:
@@ -18,6 +16,8 @@ Return valid JSON only:
 }`;
 
 export async function runReportAgent(input: string): Promise<Record<string, unknown>> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   if (store.isCircuitOpen()) {
     return {
       weekOf: new Date().toISOString().split("T")[0],

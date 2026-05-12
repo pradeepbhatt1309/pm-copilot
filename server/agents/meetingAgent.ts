@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { store } from "../storage.js";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const MEETING_SYSTEM = `You are extracting structured information from meeting notes for a Senior PM in BFSI. Be precise — only extract what is explicitly stated, never infer.
 
 Return valid JSON only:
@@ -18,6 +16,8 @@ Return valid JSON only:
 }`;
 
 export async function runMeetingAgent(input: string): Promise<Record<string, unknown>> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   if (store.isCircuitOpen()) {
     return {
       meetingTitle: "Meeting Notes",
