@@ -11,6 +11,14 @@ Paste anything — an email, meeting notes, a project update, a risk concern. PM
 No dropdowns. No mode selection. Just paste and get.
 
 ---
+## Screenshots
+
+<img width="1462" height="833" alt="Image" src="https://github.com/user-attachments/assets/f7dd37e1-c114-4a28-aca6-4308afd51dd6" />
+<img width="1473" height="811" alt="Image" src="https://github.com/user-attachments/assets/91ec56d5-aa23-48da-9bba-6da8b1c4a9a6" />
+<img width="1496" height="818" alt="Image" src="https://github.com/user-attachments/assets/b426294d-ff78-4ead-9b18-70aacf927a7e" />
+<img width="1490" height="827" alt="Image" src="https://github.com/user-attachments/assets/28a0bd39-7c66-46ce-ad38-0974c2e47bd3" />
+<img width="1487" height="796" alt="Image" src="https://github.com/user-attachments/assets/050e85e2-e904-4e5d-8972-06c035b5589d" />
+<img width="1482" height="834" alt="Image" src="https://github.com/user-attachments/assets/0ae436c9-678b-425d-8e44-672fd40f3f0f" />
 
 ## 🧩 Multi-Agent Architecture
 
