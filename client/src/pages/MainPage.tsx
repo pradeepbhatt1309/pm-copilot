@@ -426,6 +426,7 @@ const QUICK_ACTIONS = [
 export default function MainPage() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState<ProcessResult | null>(null);
+  const [processError, setProcessError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("actions");
   const [file, setFile] = useState<File | null>(null);
   const [forceAgent, setForceAgent] = useState<string | undefined>();
@@ -436,6 +437,7 @@ export default function MainPage() {
 
   const handleProcess = useCallback(() => {
     if (!input.trim() && !file) return;
+    setProcessError(null);
     process(
       { input, file: file || undefined, forceAgent },
       {
@@ -445,12 +447,17 @@ export default function MainPage() {
           const tabs = getAvailableTabs(data);
           if (tabs.length > 0) setActiveTab(tabs[0].value);
         },
+        onError: (err) => {
+          setResult(null);
+          setProcessError((err as Error).message || "Processing failed");
+        },
       }
     );
   }, [input, file, forceAgent, process]);
 
   const handleQuickAction = (action: { label: string; forceAgent: string }) => {
     setForceAgent(action.forceAgent);
+    setProcessError(null);
     if (input.trim()) {
       process(
         { input, forceAgent: action.forceAgent },
@@ -460,6 +467,10 @@ export default function MainPage() {
             setForceAgent(undefined);
             const tabs = getAvailableTabs(data);
             if (tabs.length > 0) setActiveTab(tabs[0].value);
+          },
+          onError: (err) => {
+            setResult(null);
+            setProcessError((err as Error).message || "Processing failed");
           },
         }
       );
@@ -570,7 +581,17 @@ export default function MainPage() {
 
       {/* Right Panel — Output */}
       <div className="flex-1 flex flex-col p-6 overflow-auto">
-        {!result && !isPending && (
+        {processError && !isPending && (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md">
+              <AlertTriangle className="w-10 h-10 mx-auto mb-3 text-red-500" />
+              <p className="text-base font-semibold text-red-700">Processing failed</p>
+              <p className="text-sm text-muted-foreground mt-2 font-mono bg-red-50 rounded p-3 text-left break-all">{processError}</p>
+            </div>
+          </div>
+        )}
+
+        {!result && !isPending && !processError && (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-muted-foreground">
               <Bot className="w-12 h-12 mx-auto mb-4 opacity-20" />
