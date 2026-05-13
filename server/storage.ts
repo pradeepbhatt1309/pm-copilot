@@ -211,6 +211,7 @@ class InMemoryStore {
     this.session.interactions = [];
   }
 
+  isCircuitOpen(): boolean { return false; }
   getSession(): Session { return this.session; }
 }
 
